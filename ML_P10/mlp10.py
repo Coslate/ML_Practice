@@ -3,10 +3,8 @@
 import torch
 
 def box_iou_2d(boxes1: torch.Tensor, boxes2: torch.Tensor, eps: float=1e-12) -> torch.Tensor:
-    #boxes1: [N, 4]
-    #boxes2: [M, 4]
-    #return: [N, M]
-
+    # boxes1: [N, 4]
+    # boxes2: [M, 4]
     b1 = boxes1
     b2 = boxes2
 
@@ -15,13 +13,12 @@ def box_iou_2d(boxes1: torch.Tensor, boxes2: torch.Tensor, eps: float=1e-12) -> 
     xB = torch.minimum(b1[:, None, 2], b2[None, :, 2]) #[N, M]
     yB = torch.minimum(b1[:, None, 3], b2[None, :, 3]) #[N, M]
 
-    inter = (xB-xA).clamp_min(0)*(yB-yA).clamp_min(0)
+    inter = (xB-xA).clamp_min(0.0) * (yB-yA).clamp_min(0.0)
+    area1 = ((b1[:, 2] - b1[:, 0]).clamp_min(0.0) * (b1[:, 3] - b1[:, 1]).clamp_min(0.0))[:, None] #[N, 1]
+    area2 = ((b2[:, 2] - b2[:, 0]).clamp_min(0.0) * (b2[:, 3] - b2[:, 1]).clamp_min(0.0))[None, :] #[1, M]
 
-    area1 = ((b1[:, 2] - b1[:, 0]).clamp_min(0.0)*(b1[:, 3] - b1[:, 1]).clamp_min(0.0))[:, None] #[N, 1]
-    area2 = ((b2[:, 2] - b2[:, 0]).clamp_min(0.0)*(b2[:, 3] - b2[:, 1]).clamp_min(0.0))[None, :] #[1, M]
-
-    union = area1+area2-inter #[N, M]
-    return inter/(union.clamp_min(eps))
+    union = area1 + area2 - inter #[N, M]
+    return inter/union.clamp_min(eps)
 
 # quick check
 boxes1 = torch.tensor([[0, 0, 1, 1],

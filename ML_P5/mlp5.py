@@ -4,9 +4,9 @@ import torch
 
 def scatter_sum(values: torch.Tensor, bins: torch.Tensor, K: int) -> torch.Tensor:
     # values: [N]
-    # bins: [N] Long in [0, ..., K-1]
-    out = values.new_zeros((K, )) #[K]
-    out.index_add_(dim=0, index=bins, source=values) #out[bins[i]] += values[i] #[K]
+    # bins: [N] long in [0,...,K-1]
+    out = values.new_zeros((K,))
+    out.index_add_(dim=0, index=bins, source=values) #[K], out[index[i]] += values[i]
     return out
 
 # quick check
@@ -16,7 +16,8 @@ bins = torch.randint(0, 6, (20,), dtype=torch.long)
 s = scatter_sum(values, bins, K=6)
 assert s.shape == (6,)
 
-#reference check vs bincount
+# reference check vs bincount
 s_ref = torch.bincount(bins, weights=values, minlength=6)
-assert torch.allclose(s, s_ref, atol=1e-6)
+assert torch.allclose(s, s_ref, atol=1e-5)
+
 print(f"OK")

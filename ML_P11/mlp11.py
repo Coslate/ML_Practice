@@ -14,22 +14,22 @@ def box_iou_2d(boxes1: torch.Tensor, boxes2: torch.Tensor, eps: float=1e-12) -> 
     union = area1 + area2 - inter
     return inter/union.clamp_min(eps)
 
-def nms_axis_aligned(boxes: torch.Tensor, scores: torch.Tensor, iou_thresh: float=0.5) -> torch.Tensor:
-    # boxes: [N, 4], scores: [N]
+def nms_axis_aligned(boxes: torch.Tensor, scores: torch.Tensor, iou_thresh: float = 0.5) -> torch.Tensor:
+    # boxes: [N, 4]
+    # scores: [N]
     if boxes.numel() == 0:
         return torch.empty((0,), dtype=torch.long)
-
+    
     order = scores.argsort(descending=True)
     keep = []
     while order.numel() > 0:
         i = order[0].item()
         keep.append(i)
-
         if order.numel() == 1:
             break
 
-        rest = order[1:] #[M]
-        ious = box_iou_2d(boxes[i:i+1], boxes[rest]).squeeze(0) #[M], length of rest boxes
+        rest = order[1:]
+        ious = box_iou_2d(boxes[i:i+1], boxes[rest]).squeeze(0) #[M]
         order = rest[ious <= iou_thresh]
 
     return torch.tensor(keep, dtype=torch.long)
