@@ -3,21 +3,27 @@
 import torch
 
 def scatter_sum(values: torch.Tensor, bins: torch.Tensor, K: int) -> torch.Tensor:
-    # values: [N]
-    # bins: [N] long in [0,...,K-1]
+    # vlaues: [N]
+    # bins: [N] long in [0, ..., K-1]
     out = values.new_zeros((K,))
-    out.index_add_(dim=0, index=bins, source=values) #[K], out[index[i]] += values[i]
+    out.index_add_(dim=0, index=bins, source=values) #[K], #out[bins[i]] += values[i]
     return out
 
-# quick check
+#quick check
 torch.manual_seed(0)
 values = torch.randn(20)
 bins = torch.randint(0, 6, (20,), dtype=torch.long)
 s = scatter_sum(values, bins, K=6)
 assert s.shape == (6,)
 
-# reference check vs bincount
-s_ref = torch.bincount(bins, weights=values, minlength=6)
+
+#reference check vs bincount
+s_ref = torch.bincount(bins, weights=values, minlength=6) #s_ref[bins[i]] += weight[i]
 assert torch.allclose(s, s_ref, atol=1e-5)
+torch.testing.assert_close(
+    s, s_ref,
+    rtol=0, atol=1e-5,
+    msg=f"should be close."
+)
 
 print(f"OK")
