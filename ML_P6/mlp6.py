@@ -4,10 +4,10 @@ import torch
 
 def stable_softmax(logits: torch.Tensor, dim: int=-1) -> torch.Tensor:
     # Logits: [..., C]
-    z = logits - logits.max(dim=dim, keepdim=True).values #[..., C]
-    #z = logits
+    #z = logits #unstable
+    z = logits - logits.max(dim=dim, keepdim=True).values #stable, [..., C]
     expz = torch.exp(z)
-    return expz/expz.sum(dim=dim, keepdim=True)
+    return expz / expz.sum(dim=dim, keepdim=True)
 
 # quick check
 torch.manual_seed(0)
@@ -17,7 +17,7 @@ assert p.shape == (4, 7)
 assert torch.isfinite(p).all()
 assert torch.allclose(p.sum(dim=1), torch.ones((4,)), atol=1e-5)
 
-# reference check
+#reference check
 p_ref = torch.softmax(logits, dim=1)
-assert torch.allclose(p, p_ref, atol=1e-5, rtol=1e-5)
+assert torch.allclose(p, p_ref, atol=1e-5), f"should be close"
 print(f"OK")
